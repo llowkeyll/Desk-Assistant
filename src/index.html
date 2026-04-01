@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assistant Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+  <div id="widget-overlay" class="screen flex-center">
+    <div class="widget-container">
+      <div id="widget-options" class="widget-options-list" style="display: none;"></div>
+      <div id="transcription-text" class="transcription"></div>
+      <div class="audio-visualizer" id="audio-bars">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="boot-screen" class="screen active flex-center">
+    <div class="ergonomic-card text-center">
+      <i data-lucide="cpu" class="icon-hero pulse"></i>
+      <h2>Initializing Core</h2>
+      <p id="boot-status" class="text-muted">Loading models...</p>
+      <div class="progress-track"><div class="progress-fill" id="boot-progress"></div></div>
+    </div>
+  </div>
+
+  <div id="setup-screen" class="screen flex-center">
+    <div class="wizard-card">
+      <div class="slide active" id="slide-0">
+        <i data-lucide="sparkles" class="icon-accent"></i>
+        <h2>Welcome to Assistant Pro</h2>
+        <p>Let's configure your desktop environment.</p>
+        <button class="btn-primary full-width next-btn mt-4">Begin Setup <i data-lucide="arrow-right"></i></button>
+      </div>
+      <div class="slide" id="slide-1">
+        <i data-lucide="user" class="icon-accent"></i>
+        <h2>What should I call you?</h2>
+        <div class="input-group">
+          <input type="text" id="setup-username" placeholder="e.g., Commander" />
+          <span id="name-error" class="text-danger text-sm mt-2" style="display:none; font-weight: 600;"></span>
+        </div>
+        <div class="button-row mt-4">
+          <button class="btn-secondary prev-btn">Back</button>
+          <button class="btn-primary" id="verify-name-btn">Continue</button>
+        </div>
+      </div>
+      <div class="slide" id="slide-2">
+        <i data-lucide="mic" class="icon-accent"></i>
+        <h2>Core Wakeword</h2>
+        <div class="input-group">
+          <input type="text" id="setup-wakeword" value="Quick" />
+        </div>
+        <div class="button-row mt-4">
+          <button class="btn-secondary prev-btn">Back</button>
+          <button class="btn-primary next-btn">Continue</button>
+        </div>
+      </div>
+      <div class="slide" id="slide-3">
+        <i data-lucide="folder-search" class="icon-accent"></i>
+        <h2>System Discovery</h2>
+        <p>Scan program files for applications?</p>
+        <div class="button-row mt-4">
+          <button class="btn-secondary" id="skip-scan-btn">Skip</button>
+          <button class="btn-primary" id="start-scan-btn"><i data-lucide="search"></i> Start Scan</button>
+        </div>
+      </div>
+      <div class="slide" id="slide-4">
+        <div class="flex-between mb-2">
+          <h2>Discovered Apps</h2>
+          <span id="scan-counter" class="text-accent font-semibold">Scanning...</span>
+        </div>
+        <div class="app-scan-list" id="scan-results"></div>
+        <div class="button-row mt-4">
+          <button class="btn-secondary prev-btn">Back</button>
+          <button class="btn-primary full-width" id="finish-setup-btn" disabled><i data-lucide="loader" class="pulse"></i> Scan in progress...</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dashboard-screen" class="screen">
+    <header class="top-nav">
+      <div class="brand">
+        <i data-lucide="command"></i> 
+        <span id="welcome-message"></span>
+      </div>
+      <nav class="tabs">
+        <button class="tab-btn active" data-target="tab-apps"><i data-lucide="layout-grid"></i> Apps</button>
+        <button class="tab-btn" data-target="tab-routines"><i data-lucide="layers"></i> Routines</button>
+        <button class="tab-btn" data-target="tab-projects"><i data-lucide="folder-code"></i> Projects</button>
+        <button class="tab-btn" data-target="tab-settings"><i data-lucide="settings"></i> Settings</button>
+      </nav>
+      <button id="toggle-widget-btn" class="btn-secondary btn-small"><i data-lucide="mic"></i> Test Widget</button>
+    </header>
+
+    <main class="dashboard-content">
+      <section id="tab-apps" class="tab-content active">
+        <div class="panel full-height flex-col">
+          <div class="flex-between mb-4">
+            <h3>Managed Applications</h3>
+            <div class="flex-between gap-2">
+              <input type="text" id="search-apps" class="search-input" placeholder="Search apps...">
+              <button id="open-scan-modal-btn" class="btn-secondary btn-small"><i data-lucide="refresh-cw"></i> Scan</button>
+              <button id="open-add-app-modal" class="btn-primary btn-small"><i data-lucide="plus"></i> Add App</button>
+            </div>
+          </div>
+          <div id="managed-apps-list" class="list-container flex-1 overflow-y"></div>
+        </div>
+      </section>
+
+      <section id="tab-routines" class="tab-content">
+        <div class="panel full-height flex-col">
+          <div class="flex-between mb-4">
+            <h3>Linked Routines</h3>
+            <div class="flex-between gap-2">
+              <input type="text" id="search-routines" class="search-input" placeholder="Search routines...">
+              <button id="open-routine-modal" class="btn-primary btn-small"><i data-lucide="plus"></i> Create Routine</button>
+            </div>
+          </div>
+          <div id="routines-list" class="list-container flex-1 overflow-y"></div>
+        </div>
+      </section>
+
+      <section id="tab-projects" class="tab-content">
+        <div class="panel full-height flex-col">
+          <div class="flex-between mb-4">
+            <h3>VS Code Projects</h3>
+            <div class="flex-between gap-2">
+              <input type="text" id="search-projects" class="search-input" placeholder="Search projects...">
+              <button id="open-project-modal" class="btn-primary btn-small"><i data-lucide="plus"></i> Link Project</button>
+            </div>
+          </div>
+          <div id="projects-list" class="list-container flex-1 overflow-y"></div>
+        </div>
+      </section>
+
+      <section id="tab-settings" class="tab-content">
+        <div class="grid-2">
+          <div class="panel">
+            <h3>General</h3>
+            <div class="input-group">
+              <label>Dashboard Name</label>
+              <input type="text" id="dash-username">
+            </div>
+            <div class="input-group mt-3">
+              <label>Wakeword</label>
+              <input type="text" id="dash-wakeword">
+            </div>
+            <div class="input-group mt-3">
+              <label>Widget Position</label>
+              <button id="open-position-modal" class="btn-secondary full-width"><i data-lucide="move"></i> Configure</button>
+            </div>
+          </div>
+          
+          <div class="panel">
+            <h3>Appearance</h3>
+            <div class="input-group">
+              <label>Gradient Colors</label>
+              <div class="flex-between gap-2">
+                <input type="color" id="color-start" class="color-picker">
+                <input type="color" id="color-end" class="color-picker">
+              </div>
+            </div>
+            <div class="preset-row mt-2">
+              <button class="preset-btn" data-start="#0f1225" data-end="#1a1025" style="background: linear-gradient(135deg, #0f1225, #1a1025)"></button>
+              <button class="preset-btn" data-start="#0f172a" data-end="#020617" style="background: linear-gradient(135deg, #0f172a, #020617)"></button>
+              <button class="preset-btn" data-start="#052e16" data-end="#020617" style="background: linear-gradient(135deg, #052e16, #020617)"></button>
+              <button class="preset-btn" data-start="#4c0519" data-end="#2e1065" style="background: linear-gradient(135deg, #4c0519, #2e1065)"></button>
+              <button id="reset-gradient-btn" class="btn-secondary btn-small" style="margin-left:auto;"><i data-lucide="rotate-ccw"></i> Reset</button>
+            </div>
+            <div class="toggle-row flex-between mt-3">
+              <span class="text-sm font-semibold">Large Text</span>
+              <label class="switch"><input type="checkbox" id="setting-a11y"><span class="slider"></span></label>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Hardware</h3>
+            <div class="input-group">
+              <label>Microphone</label>
+              <div class="select-wrapper">
+                <select id="mic-select"><option>System Default</option></select>
+              </div>
+            </div>
+            <div class="input-group mt-3">
+              <label>Speaker</label>
+              <div class="select-wrapper">
+                <select id="speaker-select"><option>System Default</option></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel border-danger">
+            <h3 class="text-danger">Danger Zone</h3>
+            <div class="button-row mt-2">
+              <button class="btn-danger-outline full-width"><i data-lucide="alert-triangle"></i> Factory Reset</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="position-modal" class="modal-overlay">
+    <div class="fullscreen-grid">
+      <div class="grid-cell" data-pos="top-left">Top Left</div>
+      <div class="grid-cell" data-pos="top-center">Top Center</div>
+      <div class="grid-cell" data-pos="top-right">Top Right</div>
+      <div class="grid-cell" data-pos="middle-left">Middle Left</div>
+      <div class="grid-cell center-void">Center Area</div>
+      <div class="grid-cell" data-pos="middle-right">Middle Right</div>
+      <div class="grid-cell" data-pos="bottom-left">Bottom Left</div>
+      <div class="grid-cell" data-pos="bottom-center">Bottom Center</div>
+      <div class="grid-cell" data-pos="bottom-right">Bottom Right</div>
+    </div>
+    <button id="close-position-modal" class="btn-danger absolute-bottom">Close</button>
+  </div>
+
+  <div id="dash-scan-modal" class="modal-overlay flex-center">
+    <div class="ergonomic-card" style="width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
+      <div class="flex-between mb-4">
+        <h3>System Scanner</h3>
+        <span id="dash-scan-counter" class="text-accent font-semibold">Scanning...</span>
+      </div>
+      <div class="app-scan-list flex-1 overflow-y" id="dash-scan-results" style="max-height: 400px; padding-right: 10px;"></div>
+      <div class="button-row mt-5">
+        <button class="btn-secondary" onclick="document.getElementById('dash-scan-modal').classList.remove('active')">Cancel</button>
+        <button class="btn-primary" id="save-scanned-apps-btn" disabled><i data-lucide="loader" class="pulse"></i> Scanning...</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="add-app-modal" class="modal-overlay flex-center">
+    <div class="ergonomic-card" style="width: 500px;">
+      <h3>Add Application</h3>
+      <div class="input-group mt-3"><label>Name</label><input type="text" id="manual-app-name" placeholder="e.g. Photoshop"></div>
+      <div class="input-group mt-3"><label>Voice Keyword</label><input type="text" id="manual-app-keyword" placeholder="e.g. open photoshop"></div>
+      <div class="input-group mt-3">
+        <label>File Path</label>
+        <div class="flex-between gap-2">
+          <input type="text" id="manual-app-path" placeholder="C:\..." style="flex:1;">
+          <button id="browse-manual-app" class="btn-secondary"><i data-lucide="folder"></i></button>
+        </div>
+      </div>
+      <div class="button-row mt-4 pt-4" style="border-top: 1px solid var(--border);">
+        <button class="btn-secondary" onclick="document.getElementById('add-app-modal').classList.remove('active')">Cancel</button>
+        <button class="btn-primary" id="save-manual-app-btn">Save Application</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="add-routine-modal" class="modal-overlay flex-center">
+    <div class="ergonomic-card" style="width: 500px;">
+      <h3>Create Routine</h3>
+      <div class="input-group mt-3"><label>Routine Name</label><input type="text" id="add-routine-name" placeholder="e.g. Work Mode"></div>
+      <div class="input-group mt-3"><label>Voice Keyword</label><input type="text" id="add-routine-keyword" placeholder="e.g. start work"></div>
+      <div class="input-group mt-3">
+        <label>Select Apps to Open</label>
+        <input type="text" id="add-routine-search" class="search-input full-width" placeholder="Search your apps...">
+        <div id="add-routine-app-list" class="selection-list mt-2 mb-4"></div>
+      </div>
+      <div class="button-row mt-4 pt-4" style="border-top: 1px solid var(--border);">
+        <button class="btn-secondary" onclick="document.getElementById('add-routine-modal').classList.remove('active')">Cancel</button>
+        <button class="btn-primary" id="save-routine-btn">Save Routine</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="add-project-modal" class="modal-overlay flex-center">
+    <div class="ergonomic-card">
+      <h3>Link VS Code Project</h3>
+      <div class="input-group mt-3"><label>Project Name</label><input type="text" id="add-project-name" placeholder="e.g. Assistant App"></div>
+      <div class="input-group mt-3"><label>Voice Keyword</label><input type="text" id="add-project-keyword" placeholder="e.g. open assistant"></div>
+      <div class="input-group mt-3">
+        <label>Folder Path</label>
+        <div class="flex-between gap-2">
+          <input type="text" id="add-project-path" placeholder="C:\Projects\Assistant" readonly style="flex:1;">
+          <button id="browse-project-btn" class="btn-secondary"><i data-lucide="folder"></i> Browse</button>
+        </div>
+      </div>
+      <div class="button-row mt-4 pt-4" style="border-top: 1px solid var(--border);">
+        <button class="btn-secondary" onclick="document.getElementById('add-project-modal').classList.remove('active')">Cancel</button>
+        <button class="btn-primary" id="save-project-btn">Save Project</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>w
+</html>
