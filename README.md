@@ -168,20 +168,10 @@ I cannot attach binary files directly in the repository via this README. To publ
 
 ## Contact / Author
 
-Original Author: [YOUR NAME HERE]
+Original Author: Lowkey
 
 Replace the placeholder above with your name to satisfy the attribution requirement.
 
----
-
-If you'd like, I can:
-
-- Insert your real name into `README.md` and `LICENSE` now.
-- Create a repository Release draft with the `.exe` (I can guide you how to upload it).
-
-Happy to do the next step — tell me which option you prefer.# Tauri + Vanilla TS
-
-This template should help get you started developing with Tauri in vanilla HTML, CSS and Typescript.
 
 ## Recommended IDE Setup
 
