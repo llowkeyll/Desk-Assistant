@@ -138,11 +138,7 @@ When contributing, keep the original attribution section intact (see License / A
 
 ## Attribution & Redistribution
 
-You requested that your name be prominently displayed when others use, distribute, or modify this project. The repository includes an MIT License file with a placeholder for the original author name. By default, the code is licensed under the MIT License below — which requires preservation of the copyright notice.
-
-Please replace the placeholder in `LICENSE` with your preferred author name (or let me know the exact name and I will update it for you).
-
-If you prefer a different license or a stronger "attribution required" clause, tell me which one and I will update the files.
+Please view `LICENCE`
 
 ---
 
